@@ -7,6 +7,7 @@ import (
 
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/item",controller.ItemController).Methods("GET")
+	router.HandleFunc("/item",controller.GetAllItemController).Methods("GET")
+	router.HandleFunc("/item",controller.AddItemController).Methods("POST")
 	return router
 }

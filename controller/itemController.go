@@ -8,10 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	// "time"
-
-	// "os"
-
 	"github.com/SohomSaha045/POS_backend/model"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -32,30 +28,62 @@ func init() {
 	if err != nil {
 		log.Fatal("failed to connect database", err)
 	}
-
-	// res, err := db.Exec("CREATE TABLE cars (  brand VARCHAR(255),model VARCHAR(255), year INT);")
-	fmt.Printf("%T \n", db)
-
-	// fmt.Println(rows)
 }
 
-func ItemController(w http.ResponseWriter, r *http.Request) {
+func AddItemController(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Allow-Control-Allow-Methods", "POST")
+	var items []model.Item
+	e := json.NewDecoder(r.Body).Decode(&items)
+	if e != nil {
+		log.Fatal(e)
+	}
 
+	fmt.Println(items)
+
+	for _, item := range items {
+		_, err := database.Query(`Insert into item values ($1,$2,$3,$4,$5,$6)`, item.ItemId, item.ItemName, item.Brand, item.Quantity, item.Price, item.Category)
+		if err != nil {
+			json.NewEncoder(w).Encode("status : SomeThing went wrong")
+			return
+		}
+	}
+
+	json.NewEncoder(w).Encode("status : Success")
+}
+
+func GetAllItemController(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.Query("SELECT * from cars;")
 	if err != nil {
 		log.Fatal("failed to execute query", err)
 	}
+
+	// rows, err := database.Query("SELECT * from cars;")
+	// if err != nil {
+	// 	log.Fatal("failed to execute query", err)
+	// }
+	// var cars []model.Item
+	// for rows.Next() {
+	// 	var newCar model.Item
+	// 	err := rows.Scan()
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// 	cars = append(cars, newCar)
+	// 	// fmt.Printf("Brand: %s, Model: %s, Year: %d\n", brand, model, year)
+	// }
+	// fmt.Println(cars)
+
 	var cars []model.Item
 	for rows.Next() {
 		var newCar model.Item
-		err := rows.Scan(&newCar.Brand, &newCar.Model, &newCar.Year)
+		err := rows.Scan()
 		if err != nil {
 			log.Fatal(err)
 		}
 		cars = append(cars, newCar)
-		// fmt.Printf("Brand: %s, Model: %s, Year: %d\n", brand, model, year)
 	}
 	fmt.Println(cars)
 
-	json.NewEncoder(w).Encode("All movies Deleted.")
+	json.NewEncoder(w).Encode("Item has been Added.")
 }
